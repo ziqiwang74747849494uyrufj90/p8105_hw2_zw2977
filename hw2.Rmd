@@ -146,7 +146,7 @@ mci_amyloid.x <- mci_amyloid %>%
                   filter(Baseline != "Na") #remove the artifical na value
 ```
 
-There are `r dim(MCI_baseline.x)[1]` participants were recruited, and of these `r dim(nomissing.onset)[1]` develop MCI. The average baseline age is `r mean_age`. The proportion of women in the study are APOE4 carriers is `r 63/(63+148)``
+There are `r dim(MCI_baseline.x)[1]` participants were recruited, and of these `r dim(nomissing.onset)[1]` develop MCI. The average baseline age is `r mean_age`. The proportion of women in the study are APOE4 carriers is `r 63/(63+148)`
 
 
 
