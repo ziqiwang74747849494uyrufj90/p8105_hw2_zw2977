@@ -128,16 +128,15 @@ I use read.csv to read the raw data, however the first contains the metadata, wh
 
 ```{r}
 
-MCI_baseline.x <- MCI_baseline %>%
-              mutate(Sex = ifelse(Sex == 1,"Male","Female"),
-              apoe4 = ifelse(apoe4 == 1,"carriers", "Non-carriers")) 
+MCI_baseline.x <- MCI_baseline %>% 
+                  mutate(Sex = ifelse(Sex == 1, "Male", "Female"),
+                         apoe4 = ifelse(apoe4 == 1, "carriers", "Non-carriers"))
 
+nomissing.onset <- MCI_baseline.x %>% filter(Age.at.onset != ".")
 
-Mean_age <- MCI_baseline.x %>% pull(Current.Age) %>% mean()
-
-
-
-MCI_baseline.x %>% filter(Sex == "Female") %>% pull(apoe4) %>% table()
+mean_age <- MCI_baseline.x %>% pull(Current.Age) %>% mean()
+  
+MCI_baseline.x %>% filter(Sex == "Female") %>% pull(apoe4) %>% table() #63/(63+148)
 
 
 mci_amyloid <- read.csv("mci_amyloid.csv", skip = 1)
