@@ -1,0 +1,172 @@
+---
+title: "p8105_hw2_zw2977"
+author: "Ziqi Wang"
+date: "2023-09-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Problem 2
+
+```{r}
+
+library(readxl)
+
+library(dplyr)
+
+library(tidyverse)
+
+
+
+Trash_Wheel_Collection_Data <- read_excel("202309 Trash Wheel Collection Data.xlsx", 
+               sheet = "Mr. Trash Wheel",
+               range = "A3:N588", 
+               col_names = c("Dumpster", "Month", "Year", "Date",                                    "Weight.tons",                 "Volume.cubic_yards",
+                             "Plastic.Bottles", 
+                             "Polystyrene", "Cigarette.Butts", 
+                             "Glass.Bottles", 
+                             "Plastic.Bags", "Wrappers",                                          "Sports.Balls", 
+                             "Homes.Powered"))
+
+names(Trash_Wheel_Collection_Data)
+
+
+Trash_Wheel_Collection_Data.x <- Trash_Wheel_Collection_Data %>%                                    drop_na(Dumpster) %>% 
+                 mutate(homes_powered = Weight.tons * 500/30,
+                         origin = "Trash_Wheel")
+
+
+
+```
+
+
+
+```{r}
+Professor_Trash_Wheel_Collection_Data <- read_excel("202309 Trash Wheel Collection Data.xlsx",                        
+               sheet = "Professor Trash Wheel",
+               range = "A3:M110", 
+               col_names = c("Dumpster", "Month", "Year", "Date",                                    "Weight.tons", "Volume.cubic_yards",
+                             "Plastic.Bottles", 
+                             "Polystyrene", "Cigarette.Butts", 
+                             "Glass.Bottles", 
+                             "Plastic.Bags", "Wrappers",                                           "Homes.Powered"))
+
+
+
+Professor_Trash_Wheel_Collection_Data.x <- Professor_Trash_Wheel_Collection_Data %>% 
+                        drop_na(Dumpster)%>% 
+               mutate(homes_powered = Weight.tons * 500/30, 
+               origin = "Professor_Trash_Wheel")                        
+
+
+
+
+```
+
+```{r}
+Gwynnda_Trash_Wheel_Collection_Data <- read_excel("202309 Trash Wheel Collection Data.xlsx", 
+                sheet = "Gwynnda Trash Wheel",
+                range = "A3:L160",
+                col_names = c("Dumpster", 
+                              "Month", "Year", "Date",                                         "Weight.tons",                                                   "Volume.cubic_yards", 
+                              "Plastic.Bottles",
+                              "Polystyrene", 
+                              "Cigarette.Butts", 
+                              "Plastic.Bags", "Wrappers", 
+                              "Homes.Powered"))
+
+
+
+Gwynnda_Trash_Wheel_Collection_Data.x <- Gwynnda_Trash_Wheel_Collection_Data %>% drop_na(Dumpster)%>% mutate(homes_powered = Weight.tons * 500/30,
+                       origin = "Gwynnda_Trash_Wheel") 
+                       
+                       
+Trash_Wheel_Collection_Data.x$Year <- as.numeric(Trash_Wheel_Collection_Data.x$Year)
+
+data <- bind_rows(Trash_Wheel_Collection_Data.x,
+                  Professor_Trash_Wheel_Collection_Data.x,
+                  Gwynnda_Trash_Wheel_Collection_Data.x)
+
+
+```
+
+
+
+```{r}
+sumw <-  data  %>%
+  filter(origin == "Professor_Trash_Wheel") %>%
+  pull(Weight.tons) %>%
+  sum()
+
+sumx <- data %>%
+  filter(origin == "Gwynnda_Trash_Wheel" & Year == "2021" & Month == "July") %>%
+  pull(Cigarette.Butts) %>%
+  sum()
+
+
+```
+
+After merging the data, I have `r dim(data)[1]` observations and `r dim(data)[2]` variables. The total weight of trash collected by Professor Trash Wheel is `r sumw` and total number of cigarette butts collected by Gwynnda in July of 2021 is `r sumx`.
+
+
+
+
+Problem 3
+
+
+```{r}
+MCI_baseline <- read.csv("MCI_baseline.csv", skip = 1)
+
+
+
+```
+I use read.csv to read the raw data, however the first contains the metadata, which describes the information of encoding. male = 1 female = 0. Thus I read the data from the second line command (skip =1).
+
+
+```{r}
+
+MCI_baseline.x <- MCI_baseline %>%
+              mutate(Sex = ifelse(Sex == 1,"Male","Female"),
+              apoe4 = ifelse(apoe4 == 1,"carriers", "Non-carriers")) 
+
+
+Mean_age <- MCI_baseline.x %>% pull(Current.Age) %>% mean()
+
+
+
+MCI_baseline.x %>% filter(Sex == "Female") %>% pull(apoe4) %>% table()
+
+
+mci_amyloid <- read.csv("mci_amyloid.csv", skip = 1)
+
+mci_amyloid.x <- mci_amyloid %>%
+                  drop_na(Baseline) %>%  #remove non applicable value
+                  filter(Baseline != "Na") #remove the artifical na value
+```
+
+There are `r dim(MCI_baseline.x)[1]` participants were recruited, and of these `r dim(nomissing.onset)[1]` develop MCI. The average baseline age is `r mean_age`. The proportion of women in the study are APOE4 carriers is `r 63/(63+148)`
+
+
+
+```{r}
+
+id_in_MCI_baseline <- MCI_baseline.x %>% filter(!ID %in% mci_amyloid.x$Study.ID)
+id_in_mci_amyloid <- mci_amyloid.x %>% filter(!Study.ID %in% MCI_baseline.x$ID)
+
+
+
+data <- MCI_baseline.x %>%
+  rename(Study.ID = ID) %>%
+  left_join(mci_amyloid.x, by ="Study.ID")
+
+write.csv(data,"modified.data.csv")
+
+
+```
+Those ID are only in MCI_baseline but not in mci_amyloid: `r id_in_MCI_baseline$ID`, and Those ID are only in mci_amyloid but not in MCI_baseline: `r id_in_mci_amyloid$Study.ID`.
+
+
+According to the exclusion criterion, I exclude the patients with missing baseline value. After combing the baseline and amyloid data, I have a dataset with `r dim(data)[1]` observations and `r dim(data)[2]` variables in a wide format. The data constains demograhpic charactors like sex and age, as well as baseline data and 4 visits for β 42/40 ratios.
